@@ -54,12 +54,12 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @Delete(':oid')
+  @Delete(':id')
   @UserApiResponses.UserDeletedSuccessfully()
   @UserApiResponses.UserNotFoundError()
   @UserApiResponses.InvalidDataProvided()
   @UserApiResponses.InternalServerError()
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return this.usersService.remove(id);
   }
 }

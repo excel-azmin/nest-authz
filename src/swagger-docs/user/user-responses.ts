@@ -25,7 +25,7 @@ export const UserApiResponses = {
     ApiResponse({
       status: HttpStatus.NOT_FOUND,
       description: 'No users found.',
-      type: [Array],
+      type: [UserNotFoundResponseDto],
     }),
 
   UpdateUserSuccess: () =>
