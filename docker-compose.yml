@@ -9,6 +9,6 @@ services:
     volumes:
       - authz:/data/db
     ports:
-      - '27011:27017'  
+      - '27017:27017'  
 volumes:
   authz:

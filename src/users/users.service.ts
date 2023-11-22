@@ -1,20 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { UserInterface } from './interface/user.interface';
-import { Model } from 'mongoose';
-
-
+import { CreateUserDto } from './dto/create-user.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from './entities/user.entity';
+import { MongoRepository } from 'typeorm';
 
 @Injectable()
 export class UsersService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: MongoRepository<User>,
+  ) {}
 
-  constructor(@InjectModel('User') private userModel: Model<UserInterface>){}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async create(createUserDto: CreateUserDto): Promise<User>{
 
-  async create(createUserDto: CreateUserDto) {
-    const newUser = await new this.userModel(createUserDto);
-    return newUser.save()
+    return await this.userRepository.save(createUserDto);
   }
 
   findAll() {
@@ -25,6 +26,7 @@ export class UsersService {
     return `This action returns a #${id} user`;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update(id: number, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }

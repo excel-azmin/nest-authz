@@ -3,14 +3,20 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { MongooseModule } from '@nestjs/mongoose';
-import { UserSchema } from './users/schema/user.schema';
-
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [AuthModule, UsersModule, 
-    MongooseModule.forRoot(
-      'mongodb://root:example@localhost:27011',{dbName: 'authz_db'}),],
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'mongodb',
+      url: 'mongodb+srv://root:example@192.168.91.146:27017/authz_db?authMechanism=DEFAULT',
+      useNewUrlParser: true,
+      autoLoadEntities: true,
+      synchronize: true,
+    }),
+    AuthModule,
+    UsersModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
