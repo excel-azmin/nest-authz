@@ -1,13 +1,31 @@
-import { Column, Entity } from 'typeorm';
+import { ObjectId } from 'mongodb';
+import {
+  BaseEntity,
+  BeforeInsert,
+  Column,
+  Entity,
+  ObjectIdColumn,
+} from 'typeorm';
 
 @Entity()
-export class User {
+export class User extends BaseEntity {
+  @ObjectIdColumn()
+  _id: ObjectId;
+
   @Column()
-  first_name: string;
+  firstName: string;
+
   @Column()
-  last_name: string;
+  lastName: string;
+
   @Column()
-  full_name: string;
-  @Column()
+  fullName: string;
+
+  @Column({ unique: true })
   email: string;
+
+  @BeforeInsert()
+  updateFullName() {
+    this.fullName = `${this.firstName} ${this.lastName}`;
+  }
 }

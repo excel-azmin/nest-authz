@@ -6,9 +6,11 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: authz_db
+
     volumes:
       - authz:/data/db
     ports:
-      - '27017:27017'  
+      - '27017:27017'
 volumes:
   authz:

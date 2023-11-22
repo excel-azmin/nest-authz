@@ -1,18 +1,27 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
+
+console.log(parseInt(process.env.DB_PORT));
+console.log(process.env.DB_HOST);
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'mongodb',
-      url: 'mongodb+srv://root:example@192.168.91.146:27017/authz_db?authMechanism=DEFAULT',
+      host: 'localhost',
+      port: 27017, // Ensure the correct MongoDB port is used
+      username: 'root',
+      password: 'example',
+      database: 'authz_db',
+      entities: [__dirname + '/**/*.entity{.ts,.js}'], // Define entities path
+      useUnifiedTopology: true,
       useNewUrlParser: true,
-      autoLoadEntities: true,
-      synchronize: true,
+      authSource: 'admin',
+      logging: true, // Set to true for logging (optional)
     }),
     AuthModule,
     UsersModule,

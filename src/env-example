@@ -1,0 +1,5 @@
+DB_HOST=localhost
+DB_PORT=27011
+DB_USERNAME=root
+DB_PASSWORD=example
+DB_DATABASE=authz_db
