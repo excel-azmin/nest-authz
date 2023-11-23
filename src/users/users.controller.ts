@@ -6,8 +6,13 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { AuthGuard } from 'src/common/guard/auth.guard';
+import { RolesGuard } from 'src/common/guard/roles.guard';
+import { Role } from 'src/enum/role.enum';
 import { UserApiResponses } from 'src/swagger-docs/user/user-responses';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -15,6 +20,7 @@ import { UsersService } from './users.service';
 
 @ApiTags('users')
 @Controller('users')
+@ApiBearerAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -28,6 +34,8 @@ export class UsersController {
   }
 
   @Get()
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.User)
   @UserApiResponses.AllUsersRetrieved()
   @UserApiResponses.NoUsersFound()
   @UserApiResponses.InternalServerError()
@@ -55,6 +63,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  // @Roles(Role.Admin)
   @UserApiResponses.UserDeletedSuccessfully()
   @UserApiResponses.UserNotFoundError()
   @UserApiResponses.InvalidDataProvided()

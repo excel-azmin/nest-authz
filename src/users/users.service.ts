@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ObjectId } from 'mongodb';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
+import { SignInUserDto } from './dto/signin-user-dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 
@@ -22,7 +23,15 @@ export class UsersService {
     if (userExist) {
       throw new HttpException('User already exists', HttpStatus.CONFLICT);
     } else {
-      const newUser = await this.userModel.save(createUserDto);
+      const newUser = new User();
+
+      newUser.firstName = createUserDto.firstName;
+      newUser.lastName = createUserDto.lastName;
+      newUser.email = createUserDto.email;
+      newUser.password = createUserDto.password;
+      newUser.roles = createUserDto.roles;
+
+      await newUser.save();
       return {
         status: HttpStatus.CREATED,
         message: 'User created successfully',
@@ -109,11 +118,37 @@ export class UsersService {
     };
   }
 
+  async signIn(signInUserDto: SignInUserDto) {
+    const userExist = await this.checkUserByEmail(signInUserDto.email);
+
+    if (userExist) {
+      const user = await this.getUserByEmail(signInUserDto.email);
+
+      if (signInUserDto.password === user.password) {
+        return { status: HttpStatus.OK, message: 'Login Successfully', user };
+      } else {
+        return {
+          status: HttpStatus.UNAUTHORIZED,
+          message: `Wrong password`,
+        };
+      }
+    }
+
+    return {
+      status: HttpStatus.NOT_FOUND,
+      message: `User not found by this ${signInUserDto.email} mail`,
+    };
+  }
+
   async checkUserByEmail(email) {
     const userExist = await this.userModel.find({ where: { email } });
     return userExist.length > 0;
   }
 
+  async getUserByEmail(email) {
+    const user = await this.userModel.findOne({ where: { email } });
+    return user;
+  }
   async getSingleUserByID(id) {
     const user = await this.userModel.findOne({
       where: { _id: new ObjectId(id) },

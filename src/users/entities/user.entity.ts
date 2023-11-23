@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+import { Role } from 'src/enum/role.enum';
 import {
   BaseEntity,
   BeforeInsert,
@@ -23,6 +24,12 @@ export class User extends BaseEntity {
 
   @Column({ unique: true })
   email: string;
+
+  @Column({ unique: true })
+  password: string;
+
+  @Column()
+  roles: Role[];
 
   @BeforeInsert()
   updateFullName() {

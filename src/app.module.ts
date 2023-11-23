@@ -1,12 +1,16 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { jwtConstants } from './common/constants/constants';
+import { RolesGuard } from './common/guard/roles.guard';
 import { UsersModule } from './users/users.module';
 
 console.log(parseInt(process.env.DB_PORT));
-console.log(process.env.DB_HOST);
+console.log(jwtConstants.secret);
 
 @Module({
   imports: [
@@ -23,10 +27,22 @@ console.log(process.env.DB_HOST);
       authSource: 'admin',
       logging: true, // Set to true for logging (optional)
     }),
+
     AuthModule,
     UsersModule,
+    JwtModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: AuthGuard,
+    // },
+  ],
 })
 export class AppModule {}
