@@ -1,8 +1,8 @@
 import { Body, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { SignInUserDto } from 'src/users/dto/signin-user-dto';
 import { UsersService } from 'src/users/users.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 
 @Injectable()
@@ -13,22 +13,19 @@ export class AuthService {
   ) {}
 
   async signIn(signInUserDto: SignInUserDto) {
-    const user = await this.userService.signIn(signInUserDto);
-    if (user.status === HttpStatus.OK) {
-      const payload = {
-        sub: user.user._id,
-        fullName: user.user.fullName,
-        email: user.user.email,
-        roles: user.user.roles,
-      };
-      return { access_token: await this.jwtService.signAsync(payload) };
+    const response = await this.userService.signIn(signInUserDto);
+    if (response.status === HttpStatus.OK) {
+      return await this.getAccessToken(response);
     }
-
-    console.log(user.status);
+    return response;
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+
+  async create(@Body() createUserDto: CreateUserDto) {
+    const response = this.userService.create(createUserDto);
+    if ((await response).status == HttpStatus.CREATED) {
+      return await this.getAccessToken(response);
+    }
+    return response;
   }
 
   findAll() {
@@ -47,4 +44,24 @@ export class AuthService {
   remove(id: number) {
     return `This action removes a #${id} auth`;
   }
+
+  async getAccessToken(response) {
+    const payload = {
+      sub: (await response).user._id,
+      fullName: (await response).user.fullName,
+      email: (await response).user.email,
+      roles: (await response).user.roles,
+    };
+    return { access_token: await this.jwtService.signAsync(payload) };
+  }
+
+  // async getRegisterAccessToken(response) {
+  //   const payload = {
+  //     sub: (await response).user._id,
+  //     fullName: (await response).user.fullName,
+  //     email: (await response).user.email,
+  //     roles: (await response).user.roles,
+  //   };
+  //   return { access_token: await this.jwtService.signAsync(payload) };
+  // }
 }

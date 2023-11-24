@@ -1,26 +1,72 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ROLES_KEY } from '../decorators/roles.decorator';
-import { Role } from '../enum/role.enum';
+import * as jwt from 'jsonwebtoken';
+import { Observable } from 'rxjs';
+import { jwtConstants } from '../constants/constants';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) {}
 
-  canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-    if (!requiredRoles || requiredRoles.length === 0) {
-      return true; // No specific roles required, allow access
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
+    try {
+      const roles = this.reflector.get<string[]>('roles', context.getHandler());
+      if (!roles) {
+        return true;
+      }
+
+      const req = context.switchToHttp().getRequest();
+      const token = this.extractToken(req.headers.authorization);
+      if (!token) {
+        return false; // Or handle the case where the token is missing
+      }
+
+      const user = this.verifyToken(token);
+
+      if (!user || !user.roles) {
+        return false; // Or handle as needed if user or roles are missing
+      }
+
+      const hasPermission = () => {
+        const userHasRoles = user.roles.some((role) => roles.includes(role));
+        if (!userHasRoles) {
+          return false;
+        }
+
+        // Check for specific permissions based on req.params or req.body if needed
+
+        return true;
+      };
+
+      return hasPermission();
+    } catch (error) {
+      console.error('Roles Guard Error:', error);
+      return false; // Or handle the error according to your application's logic
+    }
+  }
+
+  private extractToken(authorizationHeader: string | undefined): string | null {
+    if (!authorizationHeader) {
+      return null;
     }
 
-    const { user } = context.switchToHttp().getRequest();
-    if (!user || !user.roles || user.roles.length === 0) {
-      return false; // User roles not found or empty, deny access
+    const tokenParts = authorizationHeader.split(' ');
+    if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
+      return null;
     }
 
-    return user.roles.some((userRole) => requiredRoles.includes(userRole));
+    return tokenParts[1];
+  }
+
+  private verifyToken(token: string): any | null {
+    try {
+      const decoded = jwt.verify(token, jwtConstants.secret);
+      return decoded;
+    } catch (error) {
+      console.error('Token verification error:', error);
+      return null;
+    }
   }
 }

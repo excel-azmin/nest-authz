@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -23,19 +24,20 @@ export class UsersService {
     if (userExist) {
       throw new HttpException('User already exists', HttpStatus.CONFLICT);
     } else {
-      const newUser = new User();
+      const user = new User();
+      const encryptedPassword = await this.hashPassword(createUserDto.password);
 
-      newUser.firstName = createUserDto.firstName;
-      newUser.lastName = createUserDto.lastName;
-      newUser.email = createUserDto.email;
-      newUser.password = createUserDto.password;
-      newUser.roles = createUserDto.roles;
+      user.firstName = createUserDto.firstName;
+      user.lastName = createUserDto.lastName;
+      user.email = createUserDto.email;
+      user.password = encryptedPassword;
+      user.roles = createUserDto.roles;
 
-      await newUser.save();
+      await user.save();
       return {
         status: HttpStatus.CREATED,
         message: 'User created successfully',
-        user: newUser,
+        user,
       };
     }
   }
@@ -124,14 +126,16 @@ export class UsersService {
     if (userExist) {
       const user = await this.getUserByEmail(signInUserDto.email);
 
-      if (signInUserDto.password === user.password) {
+      if (
+        await this.compareHashPassword(signInUserDto.password, user.password)
+      ) {
         return { status: HttpStatus.OK, message: 'Login Successfully', user };
-      } else {
-        return {
-          status: HttpStatus.UNAUTHORIZED,
-          message: `Wrong password`,
-        };
       }
+      console.log('condition is working');
+      return {
+        status: HttpStatus.UNAUTHORIZED,
+        message: `Wrong password`,
+      };
     }
 
     return {
@@ -154,5 +158,14 @@ export class UsersService {
       where: { _id: new ObjectId(id) },
     });
     return user;
+  }
+
+  async hashPassword(password) {
+    const salt = await bcrypt.genSalt();
+    return await bcrypt.hash(password, salt);
+  }
+
+  async compareHashPassword(password, userPassword) {
+    return await bcrypt.compare(password, userPassword);
   }
 }

@@ -10,9 +10,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/common/enum/role.enum';
 import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/roles.guard';
-import { Role } from 'src/enum/role.enum';
 import { UserApiResponses } from 'src/swagger-docs/user/user-responses';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -35,7 +35,7 @@ export class UsersController {
 
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.User)
+  @Roles(Role.Admin, Role.User)
   @UserApiResponses.AllUsersRetrieved()
   @UserApiResponses.NoUsersFound()
   @UserApiResponses.InternalServerError()
@@ -44,6 +44,8 @@ export class UsersController {
   }
 
   @Get(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.User)
   @UserApiResponses.UserNotFoundError()
   @UserApiResponses.CreateAndGetSingleUserSuccess()
   @UserApiResponses.InvalidDataProvided()
@@ -63,7 +65,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  // @Roles(Role.Admin)
+  @Roles(Role.Admin)
   @UserApiResponses.UserDeletedSuccessfully()
   @UserApiResponses.UserNotFoundError()
   @UserApiResponses.InvalidDataProvided()
