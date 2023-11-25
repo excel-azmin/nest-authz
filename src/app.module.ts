@@ -1,16 +1,15 @@
+import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthMailModule } from './auth-mail/auth-mail.module';
 import { AuthModule } from './auth/auth.module';
-import { jwtConstants } from './common/constants/constants';
 import { RolesGuard } from './common/guard/roles.guard';
+import { mail } from './config/mail-config';
 import { UsersModule } from './users/users.module';
-
-console.log(parseInt(process.env.DB_PORT));
-console.log(jwtConstants.secret);
 
 @Module({
   imports: [
@@ -27,10 +26,26 @@ console.log(jwtConstants.secret);
       authSource: 'admin',
       logging: true, // Set to true for logging (optional)
     }),
+    MailerModule.forRoot({
+      transport: {
+        host: mail.host,
+        port: mail.port,
+        ignoreTLS: true,
+        secure: mail.secure,
+        auth: {
+          user: mail.user,
+          pass: mail.pass,
+        },
+      },
+      defaults: {
+        from: '"No Reply" info@pixfar.com',
+      },
+    }),
 
     AuthModule,
     UsersModule,
     JwtModule,
+    AuthMailModule,
   ],
   controllers: [AppController],
   providers: [
