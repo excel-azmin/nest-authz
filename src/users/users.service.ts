@@ -77,8 +77,6 @@ export class UsersService {
     if (existingUser) {
       const { affected } = await this.userModel.update(id, updateUserDto);
 
-      console.log(affected);
-
       if (affected === 1) {
         const updatedUser = await this.getSingleUserByID(id);
         return {
@@ -131,7 +129,6 @@ export class UsersService {
       ) {
         return { status: HttpStatus.OK, message: 'Login Successfully', user };
       }
-      console.log('condition is working');
       return {
         status: HttpStatus.UNAUTHORIZED,
         message: `Wrong password`,

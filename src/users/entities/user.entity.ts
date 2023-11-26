@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+import { CreateShipment } from 'src/create-shipment/entities/create-shipment.entity';
 import { Role } from 'src/enum/role.enum';
 import {
   BaseEntity,
@@ -6,6 +7,7 @@ import {
   Column,
   Entity,
   ObjectIdColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity()
@@ -30,6 +32,9 @@ export class User extends BaseEntity {
 
   @Column()
   roles: Role[];
+
+  @OneToMany(() => CreateShipment, (shipment) => shipment.created_by)
+  shipments: CreateShipment[];
 
   @BeforeInsert()
   updateFullName() {

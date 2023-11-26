@@ -1,48 +1,66 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { AuthService } from 'src/auth/auth.service';
+import { jwtConstants } from 'src/common/constants/constants';
 import { mail } from 'src/config/mail-config';
-import { CreateAuthMailDto } from './dto/create-auth-mail.dto';
-import { UpdateAuthMailDto } from './dto/update-auth-mail.dto';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
 @Injectable()
 export class AuthMailService {
-  constructor(private readonly mailService: MailerService) {}
+  constructor(
+    private readonly mailService: MailerService,
+    private readonly jwtService: JwtService,
+    private readonly authService: AuthService,
+  ) {}
 
-  async create(createAuthMailDto: CreateAuthMailDto) {
+  async create(createUserDto: CreateUserDto) {
+    const payload = {
+      firstName: createUserDto.firstName,
+      lastName: createUserDto.lastName,
+      roles: createUserDto.roles,
+      email: createUserDto.email,
+      password: createUserDto.password,
+    };
+
+    const access_token = await this.jwtService.signAsync(payload);
+
     this.mailService
       .sendMail({
-        to: createAuthMailDto.email,
+        to: createUserDto.email,
         from: mail.user,
-        subject: 'NESTJS Mail',
-        text: 'Forgot Password',
-        html: `Hi there!<br><br>' +
-          createAuthMailDto.email +
-          ' <br><br> What’s a better name for Frontend Developers?<br><br> <b> <div>elopers </b>`,
+        subject: 'Registration Verification',
+        text: 'Registration Verification mail',
+        html: `
+          <p>Hi there!</p>
+          <p>Please verify your registration by clicking the link below:</p>
+          <a href="http://localhost:3000/auth-mail/verify?token=${access_token}">Verify Email</a>
+        `,
       })
-      .then((info) => {
-        console.log(info);
+      .then(() => {
+        return {
+          statusCode: HttpStatus.ACCEPTED,
+          message: 'Verification email sent successfully',
+        };
       })
-      .catch((error) => {
-        console.log(error);
+      .catch(() => {
+        return {
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Failed to send verification email',
+        };
       });
-
-    return 'success';
   }
 
-  findAll() {
-    return `This action returns all authMail`;
-  }
+  async verify(token) {
+    const tokenVerification = await this.jwtService.verifyAsync(token, {
+      secret: jwtConstants.secret,
+    });
 
-  findOne(id: number) {
-    return `This action returns a #${id} authMail`;
-  }
+    if (tokenVerification) {
+      const user = await this.authService.create(tokenVerification);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update(id: number, updateAuthMailDto: UpdateAuthMailDto) {
-    return `This action updates a #${id} authMail`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} authMail`;
+      return user;
+    }
+    return tokenVerification;
   }
 }

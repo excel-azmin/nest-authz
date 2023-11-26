@@ -35,7 +35,7 @@ export class UsersController {
 
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.Admin)
+  @Roles(Role.Admin, Role.User)
   @UserApiResponses.AllUsersRetrieved()
   @UserApiResponses.NoUsersFound()
   @UserApiResponses.InternalServerError()

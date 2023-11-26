@@ -34,9 +34,6 @@ export class RolesGuard implements CanActivate {
         if (!userHasRoles) {
           return false;
         }
-
-        // Check for specific permissions based on req.params or req.body if needed
-
         return true;
       };
 

@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { RolesGuard } from './common/guard/roles.guard';
 import { mail } from './config/mail-config';
 import { UsersModule } from './users/users.module';
+import { CreateShipmentModule } from './create-shipment/create-shipment.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     JwtModule,
     AuthMailModule,
+    CreateShipmentModule,
   ],
   controllers: [AppController],
   providers: [
