@@ -33,15 +33,15 @@ export class CreateShipmentController {
   @Roles(Role.User, Role.Manager, Role.Admin)
   async create(@Req() req, @Body() createShipmentDto: CreateShipmentDto) {
     createShipmentDto.created_by = req.user.sub;
-    console.log('controller', req.user);
+    console.log('controller', req.user.sub);
     return await this.createShipmentService.create(createShipmentDto);
   }
 
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.User, Role.Manager, Role.Admin)
-  findAll() {
-    return this.createShipmentService.findAll();
+  async findAll() {
+    return await this.createShipmentService.findAll();
   }
 
   @Get(':id')

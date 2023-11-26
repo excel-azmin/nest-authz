@@ -15,18 +15,18 @@ export class AuthMailService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const payload = {
-      firstName: createUserDto.firstName,
-      lastName: createUserDto.lastName,
-      roles: createUserDto.roles,
-      email: createUserDto.email,
-      password: createUserDto.password,
-    };
+    try {
+      const payload = {
+        firstName: createUserDto.firstName,
+        lastName: createUserDto.lastName,
+        roles: createUserDto.roles,
+        email: createUserDto.email,
+        password: createUserDto.password,
+      };
 
-    const access_token = await this.jwtService.signAsync(payload);
+      const access_token = await this.jwtService.signAsync(payload);
 
-    this.mailService
-      .sendMail({
+      await this.mailService.sendMail({
         to: createUserDto.email,
         from: mail.user,
         subject: 'Registration Verification',
@@ -36,19 +36,18 @@ export class AuthMailService {
           <p>Please verify your registration by clicking the link below:</p>
           <a href="http://localhost:3000/auth-mail/verify?token=${access_token}">Verify Email</a>
         `,
-      })
-      .then(() => {
-        return {
-          statusCode: HttpStatus.ACCEPTED,
-          message: 'Verification email sent successfully',
-        };
-      })
-      .catch(() => {
-        return {
-          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Failed to send verification email',
-        };
       });
+
+      return {
+        statusCode: HttpStatus.ACCEPTED,
+        message: 'Verification email sent successfully',
+      };
+    } catch (error) {
+      return {
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Failed to send verification email',
+      };
+    }
   }
 
   async verify(token) {

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ObjectId } from 'mongodb';
+import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateShipmentDto } from './dto/create-create-shipment.dto';
 import { UpdateCreateShipmentDto } from './dto/update-create-shipment.dto';
@@ -27,8 +28,14 @@ export class CreateShipmentService {
     return newShipment.save();
   }
 
-  findAll() {
-    return `This action returns all createShipment`;
+  async findAll() {
+    const shipment = await this.shipmentRepository.find({
+      relations: User['created_by'],
+    });
+
+    console.log(shipment);
+
+    return shipment;
   }
 
   findOne(id: number) {

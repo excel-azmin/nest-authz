@@ -3,7 +3,7 @@ import { IsEmail, IsNotEmpty, IsStrongPassword } from 'class-validator';
 
 export class SignInUserDto {
   @ApiProperty({
-    example: 'john@example.com',
+    example: 'excel.azmin@gmail.com',
     description: 'The email address of the user.',
   })
   @IsNotEmpty()

@@ -9,8 +9,8 @@ export class AuthMailController {
   constructor(private readonly authMailService: AuthMailService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.authMailService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto) {
+    return await this.authMailService.create(createUserDto);
   }
 
   @Post('/verify:token')
